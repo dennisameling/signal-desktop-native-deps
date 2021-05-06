@@ -51,7 +51,7 @@ jobs:
     
     - name: Build ia32
       working-directory: ffi/node
-      if: ${{ matrix.os }} == 'windows'
+      if: matrix.os == 'windows'
       run: |
         rustup target add i686-${{ matrix.cargo-target }}
         make libzkgroup CARGO_BUILD_TARGET=i686-${{ matrix.cargo-target }} NODE_ARCH=ia32
