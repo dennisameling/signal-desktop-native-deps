@@ -45,12 +45,16 @@ jobs:
 
     - name: Build arm64
       working-directory: ffi/node
-      run: make libzkgroup CARGO_BUILD_TARGET=aarch64-${{ matrix.cargo-target }} NODE_ARCH=arm64
+      run: |
+        rustup target add aarch64-${{ matrix.cargo-target }}
+        make libzkgroup CARGO_BUILD_TARGET=aarch64-${{ matrix.cargo-target }} NODE_ARCH=arm64
     
     - name: Build ia32
       working-directory: ffi/node
       if: ${{ matrix.os }} == 'windows'
-      run: make libzkgroup CARGO_BUILD_TARGET=i686-${{ matrix.cargo-target }} NODE_ARCH=ia32
+      run: |
+        rustup target add i686-${{ matrix.cargo-target }}
+        make libzkgroup CARGO_BUILD_TARGET=i686-${{ matrix.cargo-target }} NODE_ARCH=ia32
 
     - uses: actions/upload-artifact@v2
       with:
