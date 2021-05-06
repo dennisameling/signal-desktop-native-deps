@@ -24,10 +24,15 @@ jobs:
         include:
          - os: windows
            suffix: dll
+           cargo-target: pc-windows-msvc
          - os: macos
            suffix: dylib
+           cargo-target: apple-darwin
 
     runs-on: ${{ matrix.os }}-latest
+    env:
+      # Needed for macOS arm64 until hosted macos-11.0 runners become available
+      SDKROOT: /Library/Developer/CommandLineTools/SDKs/MacOSX11.1.sdk
     steps:
     - uses: actions/checkout@v2
       with:
@@ -36,7 +41,10 @@ jobs:
 
     - name: Build x64
       working-directory: ffi/node
-      run: make libzkgroup
+      run: |
+        make libzkgroup CARGO_BUILD_TARGET=x86_64-${{ matrix.cargo-target }} NODE_ARCH=x64
+        make libzkgroup CARGO_BUILD_TARGET=aarch64-${{ matrix.cargo-target }} NODE_ARCH=arm64
+        [[ '${{ matrix.os }}'' == 'windows']] && make libzkgroup CARGO_BUILD_TARGET=i686--${{ matrix.cargo-target }} NODE_ARCH=ia32
 
     - uses: actions/upload-artifact@v2
       with:
