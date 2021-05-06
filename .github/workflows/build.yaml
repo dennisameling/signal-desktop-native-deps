@@ -60,3 +60,35 @@ jobs:
       with:
         name: libzkgroup-${{ matrix.os }}
         path: ffi/node/libzkgroup*.${{ matrix.suffix }}
+
+  libsignal-client:
+    if: ${{ github.event.inputs.zkgroup }} == 'yes'
+
+    strategy:
+      matrix:
+        os: [windows, macos]
+        arch: [x64, arm64, ia32]
+        exclude:
+         - os: macos
+           arch: ia32
+
+    runs-on: ${{ matrix.os }}-latest
+    env:
+      # Needed for macOS arm64 until hosted macos-11.0 runners become available
+      SDKROOT: /Library/Developer/CommandLineTools/SDKs/MacOSX11.1.sdk
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        repository: signalapp/libsignal-client
+    
+    - uses: actions/setup-node@v2
+      with:
+        node-version: '14'
+
+    - name: Build
+      run: npm i -g yarn && yarn
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: libsignal-client-${{ matrix.os }}-${{ matrix.arch }}
+        path: build/Release/libsignal_client_*.node
