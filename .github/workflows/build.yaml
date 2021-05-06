@@ -1,0 +1,42 @@
+name: Build native deps
+on:
+  workflow_dispatch:
+    inputs:
+      zkgroup:
+        description: 'signal-zkgroup-node'
+        required: false
+        default: 'yes'
+      libsignal-client:
+        description: 'libsignal-client-node'
+        required: false
+        default: 'yes'
+      ringrtc:
+        description: 'signal-ringrtc-node'
+        required: false
+        default: 'no'
+
+jobs:
+  zkgroup:
+    if: ${{ github.event.inputs.zkgroup }} == 'yes'
+
+    strategy:
+      matrix:
+        include:
+         - os: windows
+           suffix: dll
+         - os: macos
+           suffix: dylib
+
+    runs-on: ${{ matrix.os }}-latest
+    steps:
+    - uses: actions/checkout@v2
+      repository: ${{ github.repository_owner }}/zkgroup
+
+    - name: Build x64
+      working-directory: ffi/node
+      run: make libzkgroup
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: libzkgroup-${{ matrix.os }}
+        path: ffi/node/libzkgroup*.${{ matrix.suffix }}
