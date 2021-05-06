@@ -30,8 +30,9 @@ jobs:
     runs-on: ${{ matrix.os }}-latest
     steps:
     - uses: actions/checkout@v2
-      repository: dennisameling/zkgroup
-      ref: node-cross-compilation
+      with:
+        repository: dennisameling/zkgroup
+        ref: node-cross-compilation
 
     - name: Build x64
       working-directory: ffi/node
