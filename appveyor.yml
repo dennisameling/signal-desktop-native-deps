@@ -1,0 +1,30 @@
+image:
+- Visual Studio 2019
+- macOS
+
+environment:
+  # Needed for macOS arm64 until hosted macos-11.0 runners become available
+  SDKROOT: /Library/Developer/CommandLineTools/SDKs/MacOSX11.1.sdk
+
+install:
+- sh: |
+    git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git $HOME/depot_tools
+    export PATH=$HOME/depot_tools:$PATH
+    if [[ $APPVEYOR_BUILD_WORKER_IMAGE == 'macOS' ]]; then
+      rustup target add aarch64-apple-darwin
+      brew install coreutils
+      RINGRTC_PLATFORM=mac
+    else
+      rustup target add aarch64-pc-windows-msvc
+      rustup target add i686-pc-windows-msvc
+      RINGRTC_PLATFORM=windows
+    fi
+
+build_script:
+  - make electron PLATFORM=$RINGRTC_PLATFORM NODEJS_ARCH=x64
+  - make electron PLATFORM=$RINGRTC_PLATFORM NODEJS_ARCH=arm64
+  - sh: |
+      [[ $APPVEYOR_BUILD_WORKER_IMAGE != 'macOS' ]] && make electron PLATFORM=$RINGRTC_PLATFORM NODEJS_ARCH=ia32
+
+artifacts:
+  - path: src/node/build/**/*.node
