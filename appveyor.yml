@@ -9,13 +9,9 @@ environment:
 install:
 - ps: Invoke-WebRequest -Uri https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe -OutFile rustup-init.exe
 - cmd: if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2019" (.\rustup-init.exe -y)
-- sh: chmod +x ./install.sh && ./install.sh
 
 build_script:
-  - sh: cd ringrtc
-  - sh: make electron PLATFORM=$RINGRTC_PLATFORM NODEJS_ARCH=x64
-  - sh: make electron PLATFORM=$RINGRTC_PLATFORM NODEJS_ARCH=arm64
-  - sh: if [[ $APPVEYOR_BUILD_WORKER_IMAGE != 'macOS' ]]; then make electron PLATFORM=$RINGRTC_PLATFORM NODEJS_ARCH=ia32; fi
+  - bash ./ringrtc-install-and-build.sh
 
 artifacts:
-  - path: src/node/build/**/*.node
+  - path: ringrtc/src/node/build/**/*.node
