@@ -29,7 +29,7 @@ env:
 
 jobs:
   zkgroup:
-    if: ${{ github.event.inputs.zkgroup }} == 'yes'
+    if: github.event.inputs.zkgroup == 'yes'
 
     strategy:
       fail-fast: false
@@ -88,7 +88,7 @@ jobs:
         path: ffi/node/libzkgroup*.${{ matrix.suffix }}
 
   libsignal-client:
-    if: ${{ github.event.inputs.libsignal-client }} == 'yes'
+    if: github.event.inputs.libsignal-client == 'yes'
 
     strategy:
       fail-fast: false
@@ -146,7 +146,7 @@ jobs:
         path: artifacts/libsignal_client_*.node
 
   ringrtc-win:
-    if: ${{ github.event.inputs.ringrtc-win }} == 'yes'
+    if: github.event.inputs.ringrtc-win == 'yes'
 
     runs-on: windows-latest
 
@@ -188,7 +188,7 @@ jobs:
         path: C:/ringrtc-tmp/ringrtc/src/node/build/**/*.node
 
   ringrtc-mac:
-    if: ${{ github.event.inputs.ringrtc-mac }} == 'yes'
+    if: github.event.inputs.ringrtc-mac == 'yes'
 
     runs-on: macos-latest
 
