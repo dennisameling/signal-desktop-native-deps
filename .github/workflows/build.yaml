@@ -64,7 +64,7 @@ jobs:
         path: ffi/node/libzkgroup*.${{ matrix.suffix }}
 
   libsignal-client:
-    if: ${{ github.event.inputs.zkgroup }} == 'yes'
+    if: ${{ github.event.inputs.libsignal-client }} == 'yes'
 
     strategy:
       matrix:
@@ -88,23 +88,66 @@ jobs:
     - run: npm i -g yarn && yarn && mkdir -p artifacts
 
     - name: Build x64
-      env:
-        CARGO_BUILD_TARGET: x86_64-${{ matrix.cargo-target }}
-        npm_config_arch: x64
-      run: yarn build && cp build/Release/libsignal_client_*.node artifacts
+      run: yarn build && cp build/Release/libsignal_client_*.node artifacts && rm -rf build
 
     - name: Build arm64
+      env:
+        npm_config_arch: arm64
       run: |
-        rustup target add aarch64-${{ matrix.cargo-target }} && yarn build -- --arch=arm64
-        cp build/Release/libsignal_client_*.node artifacts
+        rustup target add aarch64-${{ matrix.cargo-target }} && yarn build
+        cp build/Release/libsignal_client_*.node artifacts && rm -rf build
     
     - name: Build ia32
       if: matrix.os == 'windows'
+      env:
+        npm_config_arch: ia32
       run: |
-        rustup target add i686-${{ matrix.cargo-target }} && yarn build -- --arch=ia32
-        cp build/Release/libsignal_client_*.node artifacts
+        rustup target add i686-${{ matrix.cargo-target }} && yarn build
+        cp build/Release/libsignal_client_*.node artifacts && rm -rf build
 
     - uses: actions/upload-artifact@v2
       with:
         name: libsignal-client-${{ matrix.os }}
         path: artifacts/libsignal_client_*.node
+
+  ringrtc:
+    if: ${{ github.event.inputs.ringrtc }} == 'yes'
+
+    strategy:
+      matrix:
+        include:
+         - os: windows
+           platform: windows
+         - os: macos
+           platform: mac
+
+    runs-on: ${{ matrix.os }}-latest
+      
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        repository: dennisameling/ringrtc
+        ref: add-windows-multi-arch-support
+
+    - run: |
+        git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git tmp/depot_tools
+        echo "${GITHUB_WORKSPACE}/tmp/depot_tools" >> $GITHUB_PATH
+
+    - name: Build x64
+      run: make electron PLATFORM=${{ matrix.platform }} NODEJS_ARCH=x64
+
+    - name: Build arm64
+      run: |
+        rustup target add aarch64-${{ matrix.cargo-target }}
+        make electron PLATFORM=${{ matrix.platform }} NODEJS_ARCH=arm64
+    
+    - name: Build ia32
+      if: matrix.os == 'windows'
+      run: |
+        rustup target add i686-${{ matrix.cargo-target }}
+        make electron PLATFORM=${{ matrix.platform }} NODEJS_ARCH=ia32
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: ringrtc-${{ matrix.os }}
+        path: src/node/build/**/*.node
