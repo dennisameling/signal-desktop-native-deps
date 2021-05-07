@@ -18,6 +18,10 @@ on:
         description: 'Mac: signal-ringrtc-node (takes 1.5 hours to build!)'
         required: false
         default: 'no'
+      ringrtc-linux:
+        description: 'Linux: signal-ringrtc-node (takes 1.5 hours to build!)'
+        required: false
+        default: 'no'
 
 defaults:
   run:
@@ -219,3 +223,49 @@ jobs:
       with:
         name: ringrtc-mac
         path: src/node/build/**/*.node
+
+  ringrtc-linux:
+    if: github.event.inputs.ringrtc-linux == 'yes'
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        repository: dennisameling/ringrtc
+        ref: add-windows-multi-arch-support
+
+    # Since webrtc is such a massive dependency (~20GB), let's free up some disk space first.
+    - name: Free up 30GB of disk space (Linux-only)
+      run: |
+        sudo rm -rf /usr/local/lib/android # will release about 10 GB since we don't need Android
+        sudo rm -rf /usr/share/dotnet # will release about 20GB since we don't need .NET
+  
+    - run: |
+        git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git $HOME/depot_tools
+        echo "$HOME/depot_tools" >> $GITHUB_PATH
+
+    - name: Prepare workspace (takes 1 hour!)
+      run: ./bin/prepare-workspace unix
+
+    - name: Build x64
+      run: TARGET_ARCH=x64 ./bin/build-electron -r
+
+    - name: Build arm64
+      run: |
+        sudo apt-get install -y crossbuild-essential-arm64
+        export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
+        rustup target add aarch64-unknown-linux-gnu
+        TARGET_ARCH=arm64 ./bin/build-electron -r
+
+    - name: Build ia32
+      run: |
+        sudo apt-get install -y crossbuild-essential-i386
+        export CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER=i686-linux-gnu-gcc
+        rustup target add i686-unknown-linux-gnu
+        TARGET_ARCH=ia32 ./bin/build-electron -r
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: ringrtc-linux
+        path: src/node/build/**/*.node      
