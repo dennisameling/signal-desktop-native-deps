@@ -119,6 +119,10 @@ jobs:
 
     runs-on: windows-latest
 
+    env:
+      # Needed to use locally installed Visual Studio version
+      DEPOT_TOOLS_WIN_TOOLCHAIN: 0
+
     steps:
     # We use the C-drive since the default D-drive doesn't have enough space for the massive webrtc dependency
     # https://github.com/actions/virtual-environments/issues/1341#issuecomment-669204383  
