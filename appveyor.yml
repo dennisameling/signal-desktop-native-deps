@@ -8,8 +8,8 @@ environment:
 
 install:
 - ps: Invoke-WebRequest -Uri https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe -OutFile rustup-init.exe
-- cmd: if %APPVEYOR_BUILD_WORKER_IMAGE% == "Visual Studio 2019" ( .\rustup-init.exe -y )
-- sh: ./install.sh
+- cmd: if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2019" (.\rustup-init.exe -y)
+- sh: chmod +x ./install.sh && ./install.sh
 
 build_script:
   - sh: cd ringrtc
