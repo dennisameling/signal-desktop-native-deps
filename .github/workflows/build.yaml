@@ -15,6 +15,10 @@ on:
         required: false
         default: 'no'
 
+env:
+  # Needed for macOS arm64 until hosted macos-11.0 runners become available
+  SDKROOT: /Library/Developer/CommandLineTools/SDKs/MacOSX11.1.sdk
+
 jobs:
   zkgroup:
     if: ${{ github.event.inputs.zkgroup }} == 'yes'
@@ -30,9 +34,7 @@ jobs:
            cargo-target: apple-darwin
 
     runs-on: ${{ matrix.os }}-latest
-    env:
-      # Needed for macOS arm64 until hosted macos-11.0 runners become available
-      SDKROOT: /Library/Developer/CommandLineTools/SDKs/MacOSX11.1.sdk
+    
     steps:
     - uses: actions/checkout@v2
       with:
@@ -66,17 +68,14 @@ jobs:
 
     strategy:
       matrix:
-        os: [windows, macos]
-        arch: [x64, arm64, ia32]
-        exclude:
+        include:
+         - os: windows
+           cargo-target: pc-windows-msvc
          - os: macos
-           arch: ia32
+           cargo-target: apple-darwin
 
     runs-on: ${{ matrix.os }}-latest
-    env:
-      # Needed for macOS arm64 until hosted macos-11.0 runners become available
-      SDKROOT: /Library/Developer/CommandLineTools/SDKs/MacOSX11.1.sdk
-      npm_config_arch: ${{ matrix.arch }}
+      
     steps:
     - uses: actions/checkout@v2
       with:
@@ -86,10 +85,26 @@ jobs:
       with:
         node-version: '14'
 
-    - name: Build
-      run: npm i -g yarn && yarn
+    - run: npm i -g yarn && yarn && mkdir -p artifacts
+
+    - name: Build x64
+      env:
+        CARGO_BUILD_TARGET: x86_64-${{ matrix.cargo-target }}
+        npm_config_arch: x64
+      run: yarn build && cp build/Release/libsignal_client_*.node artifacts
+
+    - name: Build arm64
+      run: |
+        rustup target add aarch64-${{ matrix.cargo-target }} && yarn build -- --arch=arm64
+        cp build/Release/libsignal_client_*.node artifacts
+    
+    - name: Build ia32
+      if: matrix.os == 'windows'
+      run: |
+        rustup target add i686-${{ matrix.cargo-target }} && yarn build -- --arch=ia32
+        cp build/Release/libsignal_client_*.node artifacts
 
     - uses: actions/upload-artifact@v2
       with:
-        name: libsignal-client-${{ matrix.os }}-${{ matrix.arch }}
-        path: build/Release/libsignal_client_*.node
+        name: libsignal-client-${{ matrix.os }}
+        path: artifacts/libsignal_client_*.node
