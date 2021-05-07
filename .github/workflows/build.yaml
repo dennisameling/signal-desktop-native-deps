@@ -117,44 +117,33 @@ jobs:
   ringrtc:
     if: ${{ github.event.inputs.ringrtc }} == 'yes'
 
-    strategy:
-      matrix:
-        include:
-         - os: windows
-           platform: windows
-         - os: macos
-           platform: mac
+    runs-on: windows-latest
 
-    runs-on: ${{ matrix.os }}-latest
-      
     steps:
-    - uses: actions/checkout@v2
-      with:
-        repository: dennisameling/ringrtc
-        ref: add-windows-multi-arch-support
-
-    - run: brew install coreutils
-      if: matrix.os == 'macos'
-
+    # We use the C-drive since the default D-drive doesn't have enough space for the massive webrtc dependency
+    # https://github.com/actions/virtual-environments/issues/1341#issuecomment-669204383  
     - run: |
-        git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git $HOME/depot_tools
-        echo "$HOME/depot_tools" >> $GITHUB_PATH
+        git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git C:/ringrtc-tmp/depot_tools
+        echo "C:/ringrtc-tmp/depot_tools" >> $GITHUB_PATH
+        git clone --single-branch --branch add-windows-multi-arch-support https://github.com/dennisameling/ringrtc C:/ringrtc-tmp/ringrtc
 
     - name: Build x64
-      run: make electron PLATFORM=${{ matrix.platform }} NODEJS_ARCH=x64
+      working-directory: C:/ringrtc-tmp/ringrtc
+      run: make electron PLATFORM=windows NODEJS_ARCH=x64
 
     - name: Build arm64
+      working-directory: C:/ringrtc-tmp/ringrtc
       run: |
-        rustup target add aarch64-${{ matrix.cargo-target }}
-        make electron PLATFORM=${{ matrix.platform }} NODEJS_ARCH=arm64
+        rustup target add aarch64-pc-windows-msvc
+        make electron PLATFORM=windows NODEJS_ARCH=arm64
     
     - name: Build ia32
-      if: matrix.os == 'windows'
+      working-directory: C:/ringrtc-tmp/ringrtc
       run: |
-        rustup target add i686-${{ matrix.cargo-target }}
-        make electron PLATFORM=${{ matrix.platform }} NODEJS_ARCH=ia32
+        rustup target add i686-pc-windows-msvc
+        make electron PLATFORM=windows NODEJS_ARCH=ia32
 
     - uses: actions/upload-artifact@v2
       with:
         name: ringrtc-${{ matrix.os }}
-        path: src/node/build/**/*.node
+        path: C:/ringrtc-tmp/ringrtc/src/node/build/**/*.node
