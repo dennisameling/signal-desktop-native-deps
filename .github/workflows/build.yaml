@@ -60,11 +60,11 @@ jobs:
     - name: Build arm64
       working-directory: ffi/node
       run: |
-        CARGO_BUILD_TARGET=aarch64-${{ matrix.cargo-target }}
+        export CARGO_BUILD_TARGET=aarch64-${{ matrix.cargo-target }}
         rustup target add ${CARGO_BUILD_TARGET}
         if [[ "${{ matrix.os }}" == "ubuntu" ]]; then
           sudo apt-get install -y crossbuild-essential-arm64
-          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
+          export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
         fi
 
         make libzkgroup NODE_ARCH=arm64
@@ -73,11 +73,11 @@ jobs:
       working-directory: ffi/node
       if: matrix.os != 'macos'
       run: |
-        CARGO_BUILD_TARGET=i686-${{ matrix.cargo-target }}
+        export CARGO_BUILD_TARGET=i686-${{ matrix.cargo-target }}
         rustup target add ${CARGO_BUILD_TARGET}
         if [[ "${{ matrix.os }}" == "ubuntu" ]]; then
           sudo apt-get install -y crossbuild-essential-i386
-          CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER=i686-linux-gnu-gcc
+          export CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER=i686-linux-gnu-gcc
         fi
 
         make libzkgroup NODE_ARCH=ia32
