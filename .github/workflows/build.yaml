@@ -102,6 +102,8 @@ jobs:
            cargo-target: pc-windows-msvc
          - os: macos
            cargo-target: apple-darwin
+         - os: ubuntu
+           cargo-target: unknown-linux-gnu
 
     runs-on: ${{ matrix.os }}-latest
       
@@ -134,14 +136,22 @@ jobs:
         npm_config_arch: arm64
       run: |
         rustup target add aarch64-${{ matrix.cargo-target }}
+        if [[ "${{ matrix.os }}" == "ubuntu" ]]; then
+          sudo apt-get install -y crossbuild-essential-arm64
+          export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
+        fi
         yarn && cp build/Release/libsignal_client_*.node artifacts && rm -rf build node_modules
     
     - name: Build ia32
-      if: matrix.os == 'windows'
+      if: matrix.os != 'macos'
       env:
         npm_config_arch: ia32
       run: |
         rustup target add i686-${{ matrix.cargo-target }}
+        if [[ "${{ matrix.os }}" == "ubuntu" ]]; then
+          sudo apt-get install -y crossbuild-essential-i386
+          export CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER=i686-linux-gnu-gcc
+        fi
         yarn && cp build/Release/libsignal_client_*.node artifacts && rm -rf build node_modules
 
     - uses: actions/upload-artifact@v2
