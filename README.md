@@ -1,3 +1,3 @@
-# signal-desktop-native-deps
+# signal-native-deps
 
 For cross-compiling native Signal Desktop deps
