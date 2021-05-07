@@ -12,4 +12,4 @@ else
     rustup target add i686-pc-windows-msvc
     RINGRTC_PLATFORM=windows
 fi
-git clone --single-branch --branch add-windows-multi-arch-support dennisameling/ringrtc
+git clone --single-branch --branch add-windows-multi-arch-support https://github.com/dennisameling/ringrtc
