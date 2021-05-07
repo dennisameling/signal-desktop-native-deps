@@ -7,13 +7,9 @@ environment:
   SDKROOT: /Library/Developer/CommandLineTools/SDKs/MacOSX11.1.sdk
 
 install:
-- ps: >-
-    if ($env:APPVEYOR_BUILD_WORKER_IMAGE -imatch "Visual Studio 2019")
-    {
-      Invoke-WebRequest -Uri https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe -OutFile rustup-init.exe
-      & .\rustup-init.exe -y 2> $null
-    }
-- sh: bash ./install.sh
+- ps: Invoke-WebRequest -Uri https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe -OutFile rustup-init.exe
+- cmd: if %APPVEYOR_BUILD_WORKER_IMAGE% == "Visual Studio 2019" ( .\rustup-init.exe -y )
+- sh: ./install.sh
 
 build_script:
   - sh: cd ringrtc
