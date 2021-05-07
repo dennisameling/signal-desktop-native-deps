@@ -133,8 +133,8 @@ jobs:
       if: matrix.os == 'macos'
 
     - run: |
-        git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git ${{ github.workspace }}/tmp/depot_tools
-        echo "${{ github.workspace }}/tmp/depot_tools" >> $GITHUB_PATH
+        git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git ~/depot_tools
+        echo "~/depot_tools" >> $GITHUB_PATH
 
     - name: Build x64
       run: make electron PLATFORM=${{ matrix.platform }} NODEJS_ARCH=x64
