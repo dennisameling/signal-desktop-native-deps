@@ -10,8 +10,12 @@ on:
         description: 'libsignal-client-node'
         required: false
         default: 'yes'
-      ringrtc:
-        description: 'signal-ringrtc-node'
+      ringrtc-win:
+        description: 'Windows: signal-ringrtc-node (takes 1.5 hours to build!)'
+        required: false
+        default: 'no'
+      ringrtc-mac:
+        description: 'Mac: signal-ringrtc-node (takes 1.5 hours to build!)'
         required: false
         default: 'no'
 
@@ -28,6 +32,7 @@ jobs:
     if: ${{ github.event.inputs.zkgroup }} == 'yes'
 
     strategy:
+      fail-fast: false
       matrix:
         include:
          - os: windows
@@ -71,6 +76,7 @@ jobs:
     if: ${{ github.event.inputs.libsignal-client }} == 'yes'
 
     strategy:
+      fail-fast: false
       matrix:
         include:
          - os: windows
@@ -85,11 +91,21 @@ jobs:
       with:
         repository: signalapp/libsignal-client
     
+    - name: Install latest Rust stable
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+
+    - name: Get Node version from .nvmrc
+      id: get-nvm-version
+      shell: bash
+      run: echo "::set-output name=node-version::$(cat .nvmrc)"
+
     - uses: actions/setup-node@v2
       with:
-        node-version: '14'
+        node-version: ${{ steps.get-nvm-version.outputs.node-version }}
 
-    - run: npm i -g yarn && mkdir -p artifacts
+    - run: mkdir -p artifacts
 
     - name: Build x64
       run: yarn && cp build/Release/libsignal_client_*.node artifacts && rm -rf build node_modules
@@ -114,8 +130,8 @@ jobs:
         name: libsignal-client-${{ matrix.os }}
         path: artifacts/libsignal_client_*.node
 
-  ringrtc:
-    if: ${{ github.event.inputs.ringrtc }} == 'yes'
+  ringrtc-win:
+    if: ${{ github.event.inputs.ringrtc-win }} == 'yes'
 
     runs-on: windows-latest
 
@@ -131,23 +147,60 @@ jobs:
         echo "C:/ringrtc-tmp/depot_tools" >> $GITHUB_PATH
         git clone --single-branch --branch add-windows-multi-arch-support https://github.com/dennisameling/ringrtc C:/ringrtc-tmp/ringrtc
 
+    - name: Prepare workspace (takes 1 hour!)
+      working-directory: C:/ringrtc-tmp/ringrtc
+      run: ./bin/prepare-workspace windows
+
     - name: Build x64
       working-directory: C:/ringrtc-tmp/ringrtc
-      run: make electron PLATFORM=windows NODEJS_ARCH=x64
+      run: TARGET_ARCH=x64 ./bin/build-electron -r
 
     - name: Build arm64
       working-directory: C:/ringrtc-tmp/ringrtc
       run: |
         rustup target add aarch64-pc-windows-msvc
-        make electron PLATFORM=windows NODEJS_ARCH=arm64
+        TARGET_ARCH=arm64 ./bin/build-electron -r
     
     - name: Build ia32
       working-directory: C:/ringrtc-tmp/ringrtc
       run: |
         rustup target add i686-pc-windows-msvc
-        make electron PLATFORM=windows NODEJS_ARCH=ia32
+        TARGET_ARCH=ia32 ./bin/build-electron -r
 
     - uses: actions/upload-artifact@v2
       with:
-        name: ringrtc-${{ matrix.os }}
+        name: ringrtc-windows
         path: C:/ringrtc-tmp/ringrtc/src/node/build/**/*.node
+
+  ringrtc-mac:
+    if: ${{ github.event.inputs.ringrtc-mac }} == 'yes'
+
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        repository: dennisameling/ringrtc
+        ref: add-windows-multi-arch-support
+
+    - run: brew install coreutils
+
+    - run: |
+        git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git $HOME/depot_tools
+        echo "$HOME/depot_tools" >> $GITHUB_PATH
+
+    - name: Prepare workspace (takes 1 hour!)
+      run: ./bin/prepare-workspace mac
+
+    - name: Build x64
+      run: TARGET_ARCH=x64 ./bin/build-electron -r
+
+    - name: Build arm64
+      run: |
+        rustup target add aarch64-apple-darwin
+        TARGET_ARCH=arm64 ./bin/build-electron -r
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: ringrtc-mac
+        path: src/node/build/**/*.node
