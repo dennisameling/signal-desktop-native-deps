@@ -7,9 +7,9 @@ on:
         required: false
         default: 'yes'
       libsignal-client:
-        description: 'libsignal-client-node'
+        description: 'libsignal-client-node (enter the tag you want to build)'
         required: false
-        default: 'yes'
+        default: ''
       ringrtc-win:
         description: 'Windows tag: signal-ringrtc-node (takes 1.5 hours to build!)'
         required: false
@@ -92,7 +92,7 @@ jobs:
         path: ffi/node/libzkgroup*.${{ matrix.suffix }}
 
   libsignal-client:
-    if: github.event.inputs.libsignal-client == 'yes'
+    if: github.event.inputs.libsignal-client != ''
 
     strategy:
       fail-fast: false
@@ -111,6 +111,7 @@ jobs:
     - uses: actions/checkout@v2
       with:
         repository: signalapp/libsignal-client
+        ref: ${{ github.event.inputs.libsignal-client }}
     
     - name: Install latest Rust stable
       uses: actions-rs/toolchain@v1
@@ -156,7 +157,7 @@ jobs:
 
     - uses: actions/upload-artifact@v2
       with:
-        name: libsignal-client-${{ matrix.os }}
+        name: libsignal-client-${{ matrix.os }}-${{ github.event.inputs.libsignal-client }}
         path: artifacts/libsignal_client_*.node
 
   ringrtc-win:
