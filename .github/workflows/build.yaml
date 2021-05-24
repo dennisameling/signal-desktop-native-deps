@@ -11,17 +11,17 @@ on:
         required: false
         default: 'yes'
       ringrtc-win:
-        description: 'Windows: signal-ringrtc-node (takes 1.5 hours to build!)'
+        description: 'Windows tag: signal-ringrtc-node (takes 1.5 hours to build!)'
         required: false
-        default: 'no'
+        default: ''
       ringrtc-mac:
-        description: 'Mac: signal-ringrtc-node (takes 1.5 hours to build!)'
+        description: 'Mac tag: signal-ringrtc-node (takes 1.5 hours to build!)'
         required: false
-        default: 'no'
+        default: ''
       ringrtc-linux:
-        description: 'Linux: signal-ringrtc-node (takes 1.5 hours to build!)'
+        description: 'Linux tag: signal-ringrtc-node (takes 1.5 hours to build!)'
         required: false
-        default: 'no'
+        default: ''
 
 defaults:
   run:
@@ -160,7 +160,7 @@ jobs:
         path: artifacts/libsignal_client_*.node
 
   ringrtc-win:
-    if: github.event.inputs.ringrtc-win == 'yes'
+    if: github.event.inputs.ringrtc-win != ''
 
     runs-on: windows-latest
 
@@ -174,7 +174,7 @@ jobs:
     - run: |
         git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git C:/ringrtc-tmp/depot_tools
         echo "C:/ringrtc-tmp/depot_tools" >> $GITHUB_PATH
-        git clone --single-branch --branch add-windows-multi-arch-support https://github.com/dennisameling/ringrtc C:/ringrtc-tmp/ringrtc
+        git clone --single-branch --branch ${{ github.event.inputs.ringrtc-win }} https://github.com/signalapp/ringrtc C:/ringrtc-tmp/ringrtc
 
     - name: Prepare workspace (takes 1 hour!)
       working-directory: C:/ringrtc-tmp/ringrtc
@@ -198,19 +198,19 @@ jobs:
 
     - uses: actions/upload-artifact@v2
       with:
-        name: ringrtc-windows
+        name: ringrtc-windows-${{ github.event.inputs.ringrtc-win }}
         path: C:/ringrtc-tmp/ringrtc/src/node/build/**/*.node
 
   ringrtc-mac:
-    if: github.event.inputs.ringrtc-mac == 'yes'
+    if: github.event.inputs.ringrtc-mac != ''
 
     runs-on: macos-latest
 
     steps:
     - uses: actions/checkout@v2
       with:
-        repository: dennisameling/ringrtc
-        ref: add-windows-multi-arch-support
+        repository: signalapp/ringrtc
+        ref: ${{ github.event.inputs.ringrtc-mac }}
 
     - run: brew install coreutils
 
@@ -231,19 +231,19 @@ jobs:
 
     - uses: actions/upload-artifact@v2
       with:
-        name: ringrtc-mac
+        name: ringrtc-mac-${{ github.event.inputs.ringrtc-mac }}
         path: src/node/build/**/*.node
 
   ringrtc-linux:
-    if: github.event.inputs.ringrtc-linux == 'yes'
+    if: github.event.inputs.ringrtc-linux != ''
 
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
       with:
-        repository: dennisameling/ringrtc
-        ref: add-windows-multi-arch-support
+        repository: signalapp/ringrtc
+        ref: ${{ github.event.inputs.ringrtc-linux }}
 
     # Since webrtc is such a massive dependency (~20GB), let's free up some disk space first.
     - name: Free up 30GB of disk space (Linux-only)
