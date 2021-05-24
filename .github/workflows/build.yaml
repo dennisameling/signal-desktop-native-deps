@@ -127,38 +127,37 @@ jobs:
       with:
         node-version: ${{ steps.get-nvm-version.outputs.node-version }}
 
-    - run: mkdir -p artifacts
+    - name: Install deps
+      run: yarn
 
     - name: Build x64
-      run: yarn && cp build/Release/libsignal_client_*.node artifacts && rm -rf build node_modules
+      run: npx prebuildify --napi --arch x64
 
     - name: Build arm64
-      env:
-        npm_config_arch: arm64
+      # Can only reliably create arm64 builds on macOS when macos-11.0 runners become available
+      if: matrix.os != 'macos'
       run: |
         rustup target add aarch64-${{ matrix.cargo-target }}
         if [[ "${{ matrix.os }}" == "ubuntu" ]]; then
           sudo apt-get install -y crossbuild-essential-arm64
           export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
         fi
-        yarn && cp build/Release/libsignal_client_*.node artifacts && rm -rf build node_modules
+        npx prebuildify --napi --arch arm64
     
     - name: Build ia32
       if: matrix.os != 'macos'
-      env:
-        npm_config_arch: ia32
       run: |
         rustup target add i686-${{ matrix.cargo-target }}
         if [[ "${{ matrix.os }}" == "ubuntu" ]]; then
           sudo apt-get install -y crossbuild-essential-i386
           export CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER=i686-linux-gnu-gcc
         fi
-        yarn && cp build/Release/libsignal_client_*.node artifacts && rm -rf build node_modules
+        npx prebuildify --napi --arch ia32
 
     - uses: actions/upload-artifact@v2
       with:
         name: libsignal-client-${{ matrix.os }}-${{ github.event.inputs.libsignal-client }}
-        path: artifacts/libsignal_client_*.node
+        path: prebuilds/*
 
   ringrtc-win:
     if: github.event.inputs.ringrtc-win != ''
