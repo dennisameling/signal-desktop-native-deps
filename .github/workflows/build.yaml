@@ -99,13 +99,16 @@ jobs:
       matrix:
         include:
          - os: windows
+           runner: windows-latest
            cargo-target: pc-windows-msvc
          - os: macos
+           runner: macos-11
            cargo-target: apple-darwin
          - os: ubuntu
+           runner: ubuntu-latest
            cargo-target: unknown-linux-gnu
 
-    runs-on: ${{ matrix.os }}-latest
+    runs-on: ${{ matrix.runner }}
       
     steps:
     - uses: actions/checkout@v2
