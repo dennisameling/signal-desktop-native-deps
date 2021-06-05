@@ -27,10 +27,6 @@ defaults:
   run:
     shell: bash
 
-env:
-  # Needed for macOS arm64 until hosted macos-11.0 runners become available
-  SDKROOT: /Library/Developer/CommandLineTools/SDKs/MacOSX11.1.sdk
-
 jobs:
   zkgroup:
     if: github.event.inputs.zkgroup == 'yes'
@@ -40,16 +36,19 @@ jobs:
       matrix:
         include:
          - os: windows
+           runner: windows-latest
            suffix: dll
            cargo-target: pc-windows-msvc
          - os: macos
+           runner: macos-11
            suffix: dylib
            cargo-target: apple-darwin
          - os: ubuntu
+           runner: ubuntu-latest
            suffix: so
            cargo-target: unknown-linux-gnu
 
-    runs-on: ${{ matrix.os }}-latest
+    runs-on: ${{ matrix.runner }}
     
     steps:
     - uses: actions/checkout@v2
@@ -137,8 +136,6 @@ jobs:
       run: npx prebuildify --napi --arch x64
 
     - name: Build arm64
-      # Can only reliably create arm64 builds on macOS when macos-11.0 runners become available
-      if: matrix.os != 'macos'
       run: |
         rustup target add aarch64-${{ matrix.cargo-target }}
         if [[ "${{ matrix.os }}" == "ubuntu" ]]; then
@@ -207,7 +204,7 @@ jobs:
   ringrtc-mac:
     if: github.event.inputs.ringrtc-mac != ''
 
-    runs-on: macos-latest
+    runs-on: macos-11
 
     steps:
     - uses: actions/checkout@v2
