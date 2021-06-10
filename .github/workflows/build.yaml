@@ -176,7 +176,7 @@ jobs:
         echo "C:/ringrtc-tmp/depot_tools" >> $GITHUB_PATH
         git clone --single-branch --branch ${{ github.event.inputs.ringrtc-win }} https://github.com/signalapp/ringrtc C:/ringrtc-tmp/ringrtc
 
-    - name: Prepare workspace (takes 1 hour!)
+    - name: Prepare workspace (takes up to 1 hour!)
       working-directory: C:/ringrtc-tmp/ringrtc
       run: ./bin/prepare-workspace windows
 
@@ -218,7 +218,7 @@ jobs:
         git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git $HOME/depot_tools
         echo "$HOME/depot_tools" >> $GITHUB_PATH
 
-    - name: Prepare workspace (takes 1 hour!)
+    - name: Prepare workspace (takes up to 1 hour!)
       run: ./bin/prepare-workspace mac
 
     - name: Build x64
@@ -255,7 +255,7 @@ jobs:
         git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git $HOME/depot_tools
         echo "$HOME/depot_tools" >> $GITHUB_PATH
 
-    - name: Prepare workspace (takes 1 hour!)
+    - name: Prepare workspace (takes up to 1 hour!)
       run: ./bin/prepare-workspace unix
 
     - name: Build x64
@@ -275,8 +275,21 @@ jobs:
         export CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER=i686-linux-gnu-gcc
         rustup target add i686-unknown-linux-gnu
         TARGET_ARCH=ia32 ./bin/build-electron -r
+        
+    - uses: actions/setup-node@v2
+      with:
+        node-version: '14'
+        
+    - name: Build NodeJS lib
+      run: |
+        npm i -g yarn
+        cd src/node
+        yarn
+        yarn build
+        mkdir ../node-output
+        scripts/copy_repo.sh . ../node-output
 
     - uses: actions/upload-artifact@v2
       with:
         name: ringrtc-linux
-        path: src/node/build/**/*.node      
+        path: ${{ github.workspace }}/src/node-output
