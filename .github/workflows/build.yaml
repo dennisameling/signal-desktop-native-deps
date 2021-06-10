@@ -302,7 +302,7 @@ jobs:
 
     - uses: actions/download-artifact@v2
       with:
-        name: ringrtc-win-${{ github.event.inputs.ringrtc }}
+        name: ringrtc-windows-${{ github.event.inputs.ringrtc }}
         path: build
 
     - name: Display structure of downloaded files
