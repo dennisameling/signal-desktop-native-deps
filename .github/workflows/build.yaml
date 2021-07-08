@@ -3,9 +3,9 @@ on:
   workflow_dispatch:
     inputs:
       zkgroup:
-        description: 'signal-zkgroup-node'
+        description: 'signal-zkgroup-node (enter the tag you want to build)'
         required: false
-        default: 'yes'
+        default: ''
       libsignal-client:
         description: 'libsignal-client-node (enter the tag you want to build)'
         required: false
@@ -21,7 +21,7 @@ defaults:
 
 jobs:
   zkgroup:
-    if: github.event.inputs.zkgroup == 'yes'
+    if: github.event.inputs.zkgroup != ''
 
     strategy:
       fail-fast: false
@@ -45,8 +45,8 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        repository: dennisameling/zkgroup
-        ref: node-cross-compilation
+        repository: signalapp/zkgroup
+        ref: ${{ github.event.inputs.zkgroup }}
 
     - name: Build x64
       working-directory: ffi/node
