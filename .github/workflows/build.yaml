@@ -157,7 +157,7 @@ jobs:
       # We simply strip out the version so that it's easier to work with later on
       run: |
         npm pack --json=true > npm-output.json
-        mv signalapp-client-$(jq .[0].version npm-output.json).tgz signalapp-client.tgz
+        mv signalapp-client-$(jq .[0].version -r npm-output.json).tgz signalapp-client.tgz
 
     - uses: actions/upload-artifact@v2
       with:
