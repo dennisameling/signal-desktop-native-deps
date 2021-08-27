@@ -146,10 +146,68 @@ jobs:
         fi
         npx prebuildify --napi --arch ia32
 
+    # Need Node v16 for npm pack JSON option
+    - uses: actions/setup-node@v2
+      with:
+        node-version: '16'
+        
+    - name: Package NodeJS lib
+      if: matrix.os == 'ubuntu'
+      # This generates a signalapp-client-{VERSION}.tgz file
+      # We simply strip out the version so that it's easier to work with later on
+      run: |
+        npm pack --json=true > npm-output.json
+        mv signalapp-client-$(jq .[0].version npm-output.json).tgz signalapp-client.tgz
+
     - uses: actions/upload-artifact@v2
       with:
         name: libsignal-client-${{ matrix.os }}-${{ github.event.inputs.libsignal-client }}
         path: prebuilds/*
+    
+    - uses: actions/upload-artifact@v2
+      if: matrix.os == 'ubuntu'
+      with:
+        name: libsignal-client-node-${{ github.event.inputs.libsignal-client }}
+        path: ./signalapp-client.tgz
+
+  libsignal-build:
+    needs: [libsignal-client]
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/download-artifact@v2
+      with:
+        name: libsignal-client-ubuntu-${{ github.event.inputs.libsignal-client }}
+        path: prebuilds
+
+    - uses: actions/download-artifact@v2
+      with:
+        name: libsignal-client-macos-${{ github.event.inputs.libsignal-client }}
+        path: prebuilds
+
+    - uses: actions/download-artifact@v2
+      with:
+        name: libsignal-client-windows-${{ github.event.inputs.libsignal-client }}
+        path: prebuilds
+
+    # Contains the signalapp-client.tgz file with package.json etc.
+    - uses: actions/download-artifact@v2
+      with:
+        name: libsignal-client-node-${{ github.event.inputs.libsignal-client }}
+
+    - run: |
+        tar -xvzf signalapp-client.tgz
+        mv package/* .
+        rm package
+
+    - name: Display structure of downloaded files
+      run: ls -R
+
+    ## TODO create PR in dennisameling/libsignal-client-node automatically
+    - uses: actions/upload-artifact@v2
+      with:
+        name: libsignal-client-all-${{ github.event.inputs.ringrtc }}
+        path: ./
 
   ringrtc-win:
     if: github.event.inputs.ringrtc != ''
