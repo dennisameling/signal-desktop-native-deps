@@ -183,7 +183,7 @@ jobs:
     - run: |
         tar -xvzf signalapp-signal-client.tgz
         mv package/* .
-        rm package
+        rm -rf package
 
     - uses: actions/download-artifact@v2
       with:
