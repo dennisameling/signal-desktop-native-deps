@@ -175,6 +175,16 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+    # Contains the signalapp-signal-client.tgz file with package.json etc.
+    - uses: actions/download-artifact@v2
+      with:
+        name: libsignal-client-node-${{ github.event.inputs.libsignal-client }}
+
+    - run: |
+        tar -xvzf signalapp-signal-client.tgz
+        mv package/* .
+        rm package
+
     - uses: actions/download-artifact@v2
       with:
         name: libsignal-client-ubuntu-${{ github.event.inputs.libsignal-client }}
@@ -190,23 +200,13 @@ jobs:
         name: libsignal-client-windows-${{ github.event.inputs.libsignal-client }}
         path: prebuilds
 
-    # Contains the signalapp-signal-client.tgz file with package.json etc.
-    - uses: actions/download-artifact@v2
-      with:
-        name: libsignal-client-node-${{ github.event.inputs.libsignal-client }}
-
-    - run: |
-        tar -xvzf signalapp-signal-client.tgz
-        mv package/* .
-        rm package
-
     - name: Display structure of downloaded files
       run: ls -R
 
     ## TODO create PR in dennisameling/libsignal-client-node automatically
     - uses: actions/upload-artifact@v2
       with:
-        name: libsignal-client-all-${{ github.event.inputs.ringrtc }}
+        name: libsignal-client-all-${{ github.event.inputs.libsignal-client }}
         path: ./
 
   ringrtc-win:
