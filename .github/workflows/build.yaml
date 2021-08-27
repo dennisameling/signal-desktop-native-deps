@@ -153,11 +153,11 @@ jobs:
         
     - name: Package NodeJS lib
       if: matrix.os == 'ubuntu'
-      # This generates a signalapp-client-{VERSION}.tgz file
+      # This generates a signalapp-signal-client-{VERSION}.tgz file
       # We simply strip out the version so that it's easier to work with later on
       run: |
         npm pack --json=true > npm-output.json
-        mv signalapp-client-$(jq .[0].version -r npm-output.json).tgz signalapp-client.tgz
+        mv signalapp-signal-client-$(jq .[0].version -r npm-output.json).tgz signalapp-signal-client.tgz
 
     - uses: actions/upload-artifact@v2
       with:
@@ -168,7 +168,7 @@ jobs:
       if: matrix.os == 'ubuntu'
       with:
         name: libsignal-client-node-${{ github.event.inputs.libsignal-client }}
-        path: ./signalapp-client.tgz
+        path: ./signalapp-signal-client.tgz
 
   libsignal-build:
     needs: [libsignal-client]
@@ -190,13 +190,13 @@ jobs:
         name: libsignal-client-windows-${{ github.event.inputs.libsignal-client }}
         path: prebuilds
 
-    # Contains the signalapp-client.tgz file with package.json etc.
+    # Contains the signalapp-signal-client.tgz file with package.json etc.
     - uses: actions/download-artifact@v2
       with:
         name: libsignal-client-node-${{ github.event.inputs.libsignal-client }}
 
     - run: |
-        tar -xvzf signalapp-client.tgz
+        tar -xvzf signalapp-signal-client.tgz
         mv package/* .
         rm package
 
