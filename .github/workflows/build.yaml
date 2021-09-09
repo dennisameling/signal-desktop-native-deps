@@ -122,7 +122,7 @@ jobs:
         node-version: ${{ steps.get-nvm-version.outputs.node-version }}
 
     - name: Install deps
-      run: yarn
+      run: yarn install --frozen-lockfile
 
     - name: Build x64
       run: npx prebuildify --napi --arch x64
@@ -156,6 +156,7 @@ jobs:
       # This generates a signalapp-signal-client-{VERSION}.tgz file
       # We simply strip out the version so that it's easier to work with later on
       run: |
+        yarn tsc
         npm pack --json=true > npm-output.json
         mv signalapp-signal-client-$(jq .[0].version -r npm-output.json).tgz signalapp-signal-client.tgz
 
