@@ -126,10 +126,11 @@ jobs:
       working-directory: node
 
     - name: Build x64
-      run: npx prebuildify --napi -t ${{ steps.get-nvm-version.outputs.node-version }} --arch x64
       working-directory: node
+      run: npx prebuildify --napi -t ${{ steps.get-nvm-version.outputs.node-version }} --arch x64
 
     - name: Build arm64
+      working-directory: node
       run: |
         rustup target add aarch64-${{ matrix.cargo-target }}
         if [[ "${{ matrix.os }}" == "ubuntu" ]]; then
@@ -137,9 +138,10 @@ jobs:
           export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
         fi
         npx prebuildify --napi -t ${{ steps.get-nvm-version.outputs.node-version }} --arch arm64
-        working-directory: node
+        
     
     - name: Build ia32
+      working-directory: node
       if: matrix.os != 'macos'
       run: |
         rustup target add i686-${{ matrix.cargo-target }}
@@ -148,7 +150,6 @@ jobs:
           export CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER=i686-linux-gnu-gcc
         fi
         npx prebuildify --napi -t ${{ steps.get-nvm-version.outputs.node-version }} --arch ia32
-        working-directory: node
 
     # Need Node v16 for npm pack JSON option
     - uses: actions/setup-node@v2
