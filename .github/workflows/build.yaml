@@ -122,7 +122,7 @@ jobs:
         node-version: ${{ steps.get-nvm-version.outputs.node-version }}
 
     - name: Install deps
-      run: yarn install --frozen-lockfile
+      run: yarn install --ignore-scripts --frozen-lockfile
       working-directory: node
 
     - name: Build x64
