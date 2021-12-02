@@ -123,9 +123,11 @@ jobs:
 
     - name: Install deps
       run: yarn install --frozen-lockfile
+      working-directory: node
 
     - name: Build x64
       run: npx prebuildify --napi -t ${{ steps.get-nvm-version.outputs.node-version }} --arch x64
+      working-directory: node
 
     - name: Build arm64
       run: |
@@ -135,6 +137,7 @@ jobs:
           export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
         fi
         npx prebuildify --napi -t ${{ steps.get-nvm-version.outputs.node-version }} --arch arm64
+        working-directory: node
     
     - name: Build ia32
       if: matrix.os != 'macos'
@@ -145,6 +148,7 @@ jobs:
           export CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER=i686-linux-gnu-gcc
         fi
         npx prebuildify --napi -t ${{ steps.get-nvm-version.outputs.node-version }} --arch ia32
+        working-directory: node
 
     # Need Node v16 for npm pack JSON option
     - uses: actions/setup-node@v2
@@ -152,6 +156,7 @@ jobs:
         node-version: '16'
         
     - name: Package NodeJS lib
+      working-directory: node
       if: matrix.os == 'ubuntu'
       # This generates a signalapp-signal-client-{VERSION}.tgz file
       # We simply strip out the version so that it's easier to work with later on
@@ -163,13 +168,13 @@ jobs:
     - uses: actions/upload-artifact@v2
       with:
         name: libsignal-client-${{ matrix.os }}-${{ github.event.inputs.libsignal-client }}
-        path: prebuilds/*
+        path: node/prebuilds/*
     
     - uses: actions/upload-artifact@v2
       if: matrix.os == 'ubuntu'
       with:
         name: libsignal-client-node-${{ github.event.inputs.libsignal-client }}
-        path: ./signalapp-signal-client.tgz
+        path: node/signalapp-signal-client.tgz
 
   libsignal-build:
     needs: [libsignal-client]
