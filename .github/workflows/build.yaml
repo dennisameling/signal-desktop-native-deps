@@ -28,7 +28,7 @@ jobs:
       matrix:
         include:
          - os: windows
-           runner: windows-latest
+           runner: windows-2019
            suffix: dll
            cargo-target: pc-windows-msvc
          - os: macos
@@ -90,7 +90,7 @@ jobs:
       matrix:
         include:
          - os: windows
-           runner: windows-latest
+           runner: windows-2019
            cargo-target: pc-windows-msvc
          - os: macos
            runner: macos-11
@@ -219,7 +219,7 @@ jobs:
   ringrtc-win:
     if: github.event.inputs.ringrtc != ''
 
-    runs-on: windows-latest
+    runs-on: windows-2019
 
     env:
       # Needed to use locally installed Visual Studio version
